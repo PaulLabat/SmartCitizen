@@ -1,7 +1,7 @@
 SmartCitizen
 ============
 
-SmartCitizen 2014, Project for RICM4
+SmartCitizen 2014, Project for RICM4.<br>
 For more information about the progress of the project, see the GitHub wiki.
 
 ## Installation

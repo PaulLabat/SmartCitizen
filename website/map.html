@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SmartCitizen</title>
+  <meta charset="utf-8" />   
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta name="author" content="Paul Labat">
+
+  <!--perso-->
+  <link href="css/style.css" rel="stylesheet">
+  <!--prototype.js -->
+  <script src="js/prototype.js"></script>
+  <!--jquery-->
+  <script src="js/jquery.min.js"></script>
+  <!--bootstrap-->
+  <script src="bootstrap/js/bootstrap.min.js"></script>
+  <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- leaflet-->
+  <link href="leaflet/leaflet.css" rel="stylesheet">
+  <script src="leaflet/leaflet.js"></script>
+  <style type="text/css">
+    .leaflet-popup-content-wrapper { background-color: grey; }
+  </style>
+
+  <!--socket.io-->
+  <script type="text/javascript" src="js/socket.io.min.js"></script>
+</head>
+<body>
+    
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="index.html">SmartCitizen</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="index.html">Home</a></li>
+            <li class="active"><a href="map.html">Map</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+    <div id="map"></div>
+    
+
+
+    
+    <!--Beggining of the script for the map -->
+  <script>
+  jQuery.noConflict();
+
+  var sensors = new Hash();
+
+
+  var map = L.map('map').setView([45.18, 5.75], 16);
+
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+            maxZoom:18
+    }).addTo(map);
+
+   // var marker = L.marker([45.18, 5.75]).addTo(map);
+    //marker.bindPopup("no data");
+
+
+    var polygon = L.polygon([
+    [45.180, 5.75],
+    [45.185, 5.75],
+    [45.185, 5.755],
+    [45.180, 5.755]], {
+      color : 'green',
+      fillColor: 'green',
+      fillOpacity: 0.3
+    }).addTo(map)
+    .bindPopup('Polytech\' Grenoble</br> aucune polution détectée');
+
+
+var i=0;
+//socket
+  var socket = io.connect('http://localhost:3000');
+  socket.on('connect', function(){
+    socket.on('mqtt', function(msg){
+
+      //console.log("msq",msg);
+      var topic = msg.topic.split('/');
+      var id = topic[1];
+      
+      var data = msg.payload;
+      var split = data.split('#');
+      console.log("data",data);
+      var tmp;
+      if(topic[0] == "sensors")
+      {
+        if(sensors.get(id) != null)
+        {
+          sensors.get(id).bindPopup(split[0]);
+        }
+        else
+        {
+          tmp = L.marker([split[1], split[2]]).addTo(map).bindPopup(split[0]);
+          sensors.set(id,tmp);
+        }
+      }
+
+      if(i%2 == 0)
+      {
+        polygon.setStyle({fillColor: 'green', color:'green'});
+      }
+      else{
+        polygon.setStyle({fillColor: 'blue', color:'blue'});
+      }
+      i = i+1; 
+
+
+//      marker.bindPopup(message);
+      
+
+
+    });
+
+
+    socket.emit('subscribe', {topic : 'sensors/#'});
+  });
+
+    
+    //var data = "<div style=\".leaflet-popup-content-wrapper\"><b>Weather</b><br>"+"<div class=\"data\">20°C</div></div>"
+    
+
+  </script>
+</body>
+</html

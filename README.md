@@ -10,7 +10,18 @@ The website depends on some additional packages :
 - [mqtt](https://github.com/adamvr/MQTT.js/)
 - [socket.io](http://socket.io/)
 
-To install mqtt and socket.io, first you need to install node.js and NPM. Then clone the repository :
+To install mqtt and socket.io, first you need to install node.js and NPM. 
+
+In order to use an Ethernet module on your arduino and to publish with it on a MQTT server, you need to install some packages. <br>
+you need to clone in your-path-for-arduino/librairies/ 3 librairies :
+```
+git clone https://github.com/njh/NanodeMQTT.git
+git clone https://github.com/sde1000/NanodeUIP.git
+git clone https://github.com/sde1000/NanodeUNIO.git
+```
+An example of how to use a MQ4 sensor (for methane) with an arduino leonardo is available in the sensor/src_arduino/ directory. You also have a wiring diagram in the sensor/layout/ directory, and some code in python to use your arduino with serial port and publish on a MQTT server in sensor/src_python/
+
+Then clone the repository :
 ```
 git clone https://github.com/PaulLabat/SmartCitizen.git
 ```

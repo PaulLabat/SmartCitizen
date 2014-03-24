@@ -59,82 +59,27 @@
   <script>
   jQuery.noConflict();
 
-  var sensors = new Hash();
-
-
-  var map = L.map('map').setView([45.18, 5.75], 16);
+//--------------------define the map
+  var map = L.map('map').setView([45.18, 5.75], 12);
 
     L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
             maxZoom:18
     }).addTo(map);
 
-   // var marker = L.marker([45.18, 5.75]).addTo(map);
-    //marker.bindPopup("no data");
+//-------------------socket
+  var socket = io.connect('http://localhost:3000');//connection on the socket port number 3000
+  
+  socket.on('connect', function(){// when a connect message is emitted from the server
+    console.log("socketio", "connected");
 
-
-    var polygon = L.polygon([
-    [45.180, 5.75],
-    [45.185, 5.75],
-    [45.185, 5.755],
-    [45.180, 5.755]], {
-      color : 'green',
-      fillColor: 'green',
-      fillOpacity: 0.3
-    }).addTo(map)
-    .bindPopup('Polytech\' Grenoble</br> aucune polution détectée');
-
-
-var i=0;
-//socket
-  var socket = io.connect('http://localhost:3000');
-  socket.on('connect', function(){
-    socket.on('mqtt', function(msg){
-
-      //console.log("msq",msg);
-      var topic = msg.topic.split('/');
-      var id = topic[1];
-      
-      var data = msg.payload;
-      var split = data.split('#');
-      console.log("data",data);
-      var tmp;
-      if(topic[0] == "sensors")
-      {
-        if(sensors.get(id) != null)
-        {
-          sensors.get(id).bindPopup(split[0]);
-        }
-        else
-        {
-          tmp = L.marker([split[1], split[2]]).addTo(map).bindPopup(split[0]);
-          sensors.set(id,tmp);
-        }
-      }
-
-      if(i%2 == 0)
-      {
-        polygon.setStyle({fillColor: 'green', color:'green'});
-      }
-      else{
-        polygon.setStyle({fillColor: 'blue', color:'blue'});
-      }
-      i = i+1; 
-
-
-//      marker.bindPopup(message);
-      
-
-
+    socket.on('queryResponse', function(msg){ // when a mqqt message is emitted from the server
+      console.log('queryResponse', msg);
     });
 
 
-    socket.emit('subscribe', {topic : 'sensors/#'});
-  });
-
-    
-    //var data = "<div style=\".leaflet-popup-content-wrapper\"><b>Weather</b><br>"+"<div class=\"data\">20°C</div></div>"
-    
+    socket.emit('startQuery', {'idKey' :'5945cda8-fb4c-4a5a-a710-3289a9b4d95c'});//send to the server which query to proceed, is executed once-
+  });    
 
   </script>
 </body>

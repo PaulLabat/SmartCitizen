@@ -20,7 +20,7 @@
   <link href="leaflet/leaflet.css" rel="stylesheet">
   <script src="leaflet/leaflet.js"></script>
   <style type="text/css">
-    .leaflet-popup-content-wrapper { background-color: grey; }
+    .leaflet-popup-content-wrapper { background-color: white; }
   </style>
 
   <!--socket.io-->
@@ -58,6 +58,8 @@
     <!--Beggining of the script for the map -->
   <script>
   jQuery.noConflict();
+  var sensors = new Hash(); //hash map used for managing the marker on the map
+  var sensorsData = new Hash(); //hash map used for managing the data of each sensors
 
 //--------------------define the map
   var map = L.map('map').setView([45.18, 5.75], 12);
@@ -76,9 +78,18 @@
     socket.on('queryResponse', function(msg){ // when a mqqt message is emitted from the server
       console.log('queryResponse', msg);
     });
+    socket.on('startQueryReponse', function(msg){//reception of the list of sensors when the page is loaded
+      console.log('startQueryReponse', msg);
+      if(sensors.get(msg.idKey) == null)
+        {
+          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> value : none "+msg.type+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude);
+          sensors.set(msg.idKey,tmp);
+          sensorsData.set(msg.idKey, null);
+        }
+    });
 
 
-    socket.emit('startQuery', {'idKey' :'5945cda8-fb4c-4a5a-a710-3289a9b4d95c'});//send to the server which query to proceed, is executed once-
+    socket.emit('startQuery', 'allSensors');//send to the server which will send back all the sensors in the database, is executed once-
   });    
 
   </script>

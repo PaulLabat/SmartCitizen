@@ -1,6 +1,7 @@
 var mqtt = require('mqtt');
 var socket = require('socket.io');
 var mongoose = require('mongoose');
+var bson = require('bson');
 
 //----------------- mqtt part
 var mqttbroker = 'localhost';
@@ -17,21 +18,28 @@ db.once('open', function callback () {
   console.log("mongoose","connection success");
 });
 
-var sensorsCollection = db.collection('sensors');
-var capteursCollection = db.collection('capteurs');
-
 
 //definition of the schema used by the database
-var dataSchema = mongoose.Schema({
+var sensorsSchema = mongoose.Schema({
 	latitude: Number,
 	idKey: String,
 	type: String,
-	longitude: Number
+	longitude: Number,
 },
 {
 	collection: 'sensors' 
 });
-var Data = mongoose.model('Data', dataSchema);// define a mongoose model named data
+var sensorsDataSchema = mongoose.Schema({
+	idKey: String,
+	value : Number,
+},
+{
+	collection: 'sensorsData' 
+});
+
+
+var Sensors = mongoose.model('Sensors', sensorsSchema);
+var SensorsData = mongoose.model('SensorsData', sensorsDataSchema);
 
 //------------------ socket.io part
 var io = socket.listen(3000);
@@ -46,18 +54,33 @@ io.sockets.on('connection', function (socket) {
 
 	//function called when a query is received
     socket.on('startQuery', function (query)
-    {
-    	console.log('startQuery', query.idKey);
-    	//var res = sensorsCollection.find({'idKey': query.idKey});
-    	Data.find({type: "celcius"}).exec(function(err,doc){
+	{	
+    	/*
+    	Sensors.find({type: "celcius"}).exec(function(err,doc){
     		if(err)
     			console.log(err);
     		else
     			console.log(doc);
     	});
-    	//console.log('resQuery',res.mongooseCollection.collection.db);
-    	socket.emit('queryResponse','True');
-    	
+		*/
+		if(query === 'allSensors')
+		{
+			Sensors.find().exec(function(err,doc){
+				if(err)
+				{
+					console.log(err);
+					socket.emit('queryResponse','error');//if an error occur
+				}	
+    			else{
+    			//send the data of each sensors	to the map
+    				var res = JSON.parse(JSON.stringify(doc));
+    				res.forEach(function(entry){
+    					socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type});
+    				});
+    			}
+    				
+			});
+		}   	
 
     });
 });

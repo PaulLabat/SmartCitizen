@@ -1,28 +1,32 @@
 #!/usr/bin/env python
-# 
-# test-messages.py - This script publish a random MQTT messages every 2 s.
-#
-# Copyright (c) 2013, Fabian Affolter <fabian@affolter-engineering.ch>
-# Released under the MIT license. See LICENSE file for details.
-#
+
 import random
 import time
 import mosquitto
-
-timestamp = int(time.time())
+import uuid
 
 broker = '127.0.0.1'
 port = 1883
 element = 'sensors'
-areas = ['1111', '', '1112', '1113', '1114', '1115', '1116']
+lat = {}
+lon = {}
+sensorsId = {}
+i=0
+while i < 6:
+	lat[i] = str(random.uniform(45.1, 45.3))
+	lon[i] =  str(random.uniform(5.68, 5.75))
+	#random uuid, ie the sensor id
+	sensorsId[i] = str(uuid.uuid4())
+	i+=1
 
-print 'Messages are published on topic %s/#... -> CTRL + C to shutdown' \
-    % element
+
+print ('Messages are published')
 
 while True:
-    area = random.choice(areas)
-    topic = element +'/'+'/'+area
-    message = str(random.uniform(0.0, 50.0))+'#'+str(random.uniform(45.0, 46.0))+'#'+str(random.uniform(5.0, 6.0))
+    area = random.randrange(0,6,1)
+    topic = element + '/' + '/' + str(area)
+    value = str(random.uniform(0.0, 50.0))
+    message = sensorsId[area] + '#' + value + '#' + lat[area] + '#' + lon[area] + '#' + "false"
 
     client = mosquitto.Mosquitto("mqtt-panel-test")
     client.connect(broker)

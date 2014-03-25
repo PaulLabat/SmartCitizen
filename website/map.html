@@ -82,7 +82,11 @@
       console.log('startQueryReponse', msg);
       if(sensors.get(msg.idKey) == null)
         {
-          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> value : none "+msg.type+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude);
+          //Adding the marker on the display with a method onClick to query the database	
+          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> value : none "+msg.type+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude).on('click', function (e) {
+        //Method onClick  	
+	    this.bindPopup("ma coordonnée GPS de latitude : " + e.latlng.lat + " et de longitude : " + e.latlng.lng);
+	  });;
           sensors.set(msg.idKey,tmp);
           sensorsData.set(msg.idKey, null);
         }

@@ -66,17 +66,14 @@ io.sockets.on('connection', function (socket) {
     			//send the data of each sensors	to the map
     				var res = JSON.parse(JSON.stringify(doc));
     				res.forEach(function(entry){
-
+    					//query the last value of the sensor
 					SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'descending'}}).exec(function(err,doc){
 					    		if(err)
 					    		{
-					    			console.log(err);
-					    			socket.emit('queryResponse','error');
-
+									socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':"none"});
 					    		}
 					    		else
 					    		{
-					    			//socket.emit('queryResponse',JSON.parse(JSON.stringify(doc[0])));
 					    			socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':JSON.parse(JSON.stringify(doc[0])).value});
 					    		}
 

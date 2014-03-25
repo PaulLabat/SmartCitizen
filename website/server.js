@@ -49,20 +49,11 @@ io.set('log level', 0)
 
 io.sockets.on('connection', function (socket) {
 	mqttclient.subscribe(topic);//suscribe to the mqtt topic
-	console.log('suscribeTopic', topic)
 
 
 	//function called when a query is received
     socket.on('startQuery', function (query)
 	{	
-    	/*
-    	Sensors.find({type: "celcius"}).exec(function(err,doc){
-    		if(err)
-    			console.log(err);
-    		else
-    			console.log(doc);
-    	});
-		*/
 		if(query === 'allSensors')
 		{
 			Sensors.find().exec(function(err,doc){
@@ -83,6 +74,29 @@ io.sockets.on('connection', function (socket) {
 		}   	
 
     });
+
+    socket.on('queryLastData', function (query){
+    	//console.log('queryLastData', query);
+    	SensorsData.find({idKey: query},{}, {sort: {'_id':'descending'}}).exec(function(err,doc){
+    		if(err)
+    		{
+    			console.log(err);
+    			socket.emit('queryResponse','error');
+
+    		}
+    		else
+    		{
+    			console.log(doc[0]);
+    			socket.emit('queryResponse',JSON.parse(JSON.stringify(doc[0])));
+    		}
+
+    	});
+
+
+    });
+
+
+
 });
 
 /**
@@ -92,16 +106,13 @@ io.sockets.on('connection', function (socket) {
 mqttclient.on('message', function(topic, payload) {
 	//data are formated so that it fit the mongodb syntax
 	var split = payload.split('#');
-	var toBeStored = new Data({
+	var toBeStored = new SensorsData({
 		idKey: split[0],
-		value: parseFloat(split[1]),
-		lat: parseFloat(split[2]),
-		lon: parseFloat(split[3])
+		value: parseFloat(split[1])
 	});
-
+	console.log('tobestored',toBeStored);
 	toBeStored.save(function(err, toBeStored){
 		if(err) return console.error(err);
 	});
-
-	console.log('', toBeStored);
+	
 });

@@ -73,22 +73,29 @@
   var socket = io.connect('http://localhost:3000');//connection on the socket port number 3000
   
   socket.on('connect', function(){// when a connect message is emitted from the server
-    console.log("socketio", "connected");
+    //  console.log("socketio", "connected");
 
-    socket.on('queryResponse', function(msg){ // when a mqqt message is emitted from the server
+    socket.on('queryResponse', function(msg){ // when a query response is received
       console.log('queryResponse', msg);
+      if(msg!=='error')
+      {
+        sensorsData.set(msg.idKey,msg.value);
+      }
+
     });
+
     socket.on('startQueryReponse', function(msg){//reception of the list of sensors when the page is loaded
-      console.log('startQueryReponse', msg);
+      //console.log('startQueryReponse', msg);
       if(sensors.get(msg.idKey) == null)
         {
-          //Adding the marker on the display with a method onClick to query the database	
-          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> value : none "+msg.type+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude).on('click', function (e) {
-        //Method onClick  	
-	    this.bindPopup("ma coordonnée GPS de latitude : " + e.latlng.lat + " et de longitude : " + e.latlng.lng);
-	  });;
-          sensors.set(msg.idKey,tmp);
           sensorsData.set(msg.idKey, null);
+          //Adding the marker on the display with a method onClick to query the database	
+          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude+"<br> value : "+null+" "+msg.type).on('click', function (e) {
+               //Method onClick  	
+              socket.emit('queryLastData',msg.idKey);
+	           this.bindPopup("uuid : "+msg.idKey+"<br>Latitude : " + e.latlng.lat + "<br>Longitude : " + e.latlng.lng+"<br>Valeur : "+sensorsData.get(msg.idKey)+" "+ msg.type);
+	           });
+          sensors.set(msg.idKey,tmp);
         }
     });
 

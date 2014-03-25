@@ -90,10 +90,10 @@
         {
           sensorsData.set(msg.idKey, null);
           //Adding the marker on the display with a method onClick to query the database	
-          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude+"<br> value : "+null+" "+msg.type).on('click', function (e) {
+          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude+"<br> value : "+msg.value+" "+msg.type).on('click', function (e) {
                //Method onClick  	
               socket.emit('queryLastData',msg.idKey);
-	           this.bindPopup("uuid : "+msg.idKey+"<br>Latitude : " + e.latlng.lat + "<br>Longitude : " + e.latlng.lng+"<br>Valeur : "+sensorsData.get(msg.idKey)+" "+ msg.type);
+	           this.bindPopup("uuid : "+msg.idKey+"<br>Latitude : " + e.latlng.lat + "<br>Longitude : " + e.latlng.lng+"<br>Valeur : "+msg.value+" "+ msg.type);
 	           });
           sensors.set(msg.idKey,tmp);
         }

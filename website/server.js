@@ -67,7 +67,7 @@ io.sockets.on('connection', function (socket) {
     				var res = JSON.parse(JSON.stringify(doc));
     				res.forEach(function(entry){
     					//query the last value of the sensor
-					SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'descending'}}).exec(function(err,doc){
+					SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'descending'}}).limit(1).exec(function(err,doc){
 					    		if(err)
 					    		{
 									socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':"none"});
@@ -78,29 +78,16 @@ io.sockets.on('connection', function (socket) {
 					    		}
 
 					    	});
-
-
-
-
-
-
-
-
-
-
-
-   					//socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type});
     				});
     			}
     				
 			});
 		}   	
 
-    });
+    });//end startquery
 
     socket.on('queryLastData', function (query){
-    	//console.log('queryLastData', query);
-    	SensorsData.find({idKey: query},{}, {sort: {'_id':'descending'}}).exec(function(err,doc){
+    	SensorsData.find({idKey: query},{}, {sort: {'_id':'descending'}}).limit(1).exec(function(err,doc){
     		if(err)
     		{
     			console.log(err);
@@ -109,16 +96,13 @@ io.sockets.on('connection', function (socket) {
     		}
     		else
     		{
-    			console.log(doc[0]);
     			socket.emit('queryResponse',JSON.parse(JSON.stringify(doc[0])));
     		}
 
     	});
 
 
-    });
-
-
+    });//end socket.on querylastdata
 
 });
 

@@ -32,6 +32,7 @@ var sensorsSchema = mongoose.Schema({
 var sensorsDataSchema = mongoose.Schema({
 	idKey: String,
 	value : Number,
+	date:{type:Date, default:Date.now()},
 },
 {
 	collection: 'sensorsData' 
@@ -67,7 +68,7 @@ io.sockets.on('connection', function (socket) {
     				var res = JSON.parse(JSON.stringify(doc));
     				res.forEach(function(entry){
     					//query the last value of the sensor
-					SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'descending'}}).limit(1).exec(function(err,doc){
+						SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'descending'}}).limit(1).exec(function(err,doc){
 					    		if(err)
 					    		{
 									socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':"none"});
@@ -77,7 +78,7 @@ io.sockets.on('connection', function (socket) {
 					    			socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':JSON.parse(JSON.stringify(doc[0])).value});
 					    		}
 
-					    	});
+					   	});
     				});
     			}
     				
@@ -103,6 +104,23 @@ io.sockets.on('connection', function (socket) {
 
 
     });//end socket.on querylastdata
+
+    socket.on('queryDataGraph', function (query){
+    	SensorsData.find({idKey: query},{}, {sort: {'_id':'ascending'}}).limit(30).exec(function(err,doc){
+    		if(err)
+    		{
+    			console.log(err);
+    			socket.emit('queryDataGraphResponse','error');
+
+    		}
+    		else
+    		{
+    			socket.emit('queryDataGraphResponse',{idKey:doc[0].idKey,value:doc});
+    		}
+
+    	});
+    });// end queryDataGraph
+
 
 });
 

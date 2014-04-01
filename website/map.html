@@ -124,7 +124,7 @@
 	           this.bindPopup("uuid : "+msg.idKey+"<br>Latitude : " + e.latlng.lat + "<br>Longitude : " + e.latlng.lng+"<br>Valeur : "+msg.value+" "+ msg.type+'<br><div id="chart'+msg.idKey+'" style="height=150px;width=200px;"></div>');
 
               //code to manage the graph morris js
-                 new Morris.Line({
+                 new Morris. Bar({
                     // ID of the element in which to draw the chart.
                     element: 'chart'+msg.idKey,
                     // Chart data records -- each entry in this array corresponds to a point on

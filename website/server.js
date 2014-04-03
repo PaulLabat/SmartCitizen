@@ -1,7 +1,6 @@
 var mqtt = require('mqtt');
 var socket = require('socket.io');
 var mongoose = require('mongoose');
-var bson = require('bson');
 
 //----------------- mqtt part
 var mqttbroker = 'localhost';
@@ -120,6 +119,22 @@ io.sockets.on('connection', function (socket) {
 
     	});
     });// end queryDataGraph
+
+    socket.on('queryAllData', function (query){
+    	SensorsData.find({idKey: query},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+    		if(err)
+    		{
+    			console.log(err);
+    			socket.emit('queryAllDataResponse','error');
+
+    		}
+    		else
+    		{
+    			socket.emit('queryAllDataResponse',{idKey:doc[0].idKey,value:doc});
+    		}
+
+    	});
+    });// end queryAllData
 
 
 });

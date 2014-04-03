@@ -10,8 +10,24 @@
 
     <title>SmartCitizen</title>
 
+    <script src="js/jquery.min.js"></script>
+    <!--bootstrap-->
+    <script src="bootstrap/js/bootstrap.min.js"></script>
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/about.css" rel="stylesheet">
+    <script src="bootstrap/js/bootstrap.min.js"></script>
+
+
+    <!--morris.js-->
+    <link rel="stylesheet" href="http://cdn.oesmith.co.uk/morris-0.4.3.min.css">
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+    <script src="morris/morris.min.js"></script>
+    <!--socket.io-->
+    <script type="text/javascript" src="js/socket.io.min.js"></script>
+
+    <!--prototype.js -->
+    <script src="js/prototype.js"></script>
+
   </head>
 
   <body>
@@ -40,17 +56,80 @@
     <div class="container">
 
       <div class="starter-template">
-        <h1>Bootstrap starter template</h1>
-        <p class="lead">Use this document as a way to quickly start any new project.<br> All you get is this text and a mostly barebones HTML document.</p>
+        <FORM NAME="ChoixCapteurs">
+        <SELECT NAME="Liste" onChange="Selected()">
+        <OPTION VALUE="">Select a sensor
+        </SELECT>
+        </FORM>
+      </div>
+      <div id="Graph">
+        <div id="info"></div>
+        <div id="chart"></div>
       </div>
 
-    </div><!-- /.container -->
+
+    </div>
+
+<script type="text/javascript">
+
+var sensors = new Hash();
+var socket = io.connect('http://localhost:3000');//connection on the socket port number 3000
+  
+  socket.on('connect', function(){// when a connect message is emitted from the server
+    //  console.log("socketio", "connected");
+
+    socket.on('queryAllDataResponse', function (msg){
+      var data = [];
+      msg.value.forEach(function (entry){
+        data.push({
+          date : entry.date,
+          value: entry.value
+        });//fin push
+      });//fin foreach
 
 
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="jquery/jquery.min.js"></script>
-    <script src="bootstrap/js/bootstrap.min.js"></script>
+      //the code bellow prevent from having more than one graph at a time
+      //remove previous div chart
+      var oldDiv = document.getElementById('chart');
+      oldDiv.parentNode.removeChild(oldDiv);
+      //add the new div chart
+      var objTo = document.getElementById('Graph');
+      var newDiv = document.createElement("div");
+      newDiv.setAttribute("id","chart");
+      objTo.appendChild(newDiv);
+
+
+      new Morris.Bar({
+        element: 'chart',
+        data: data,
+        xkey: 'date',
+        ykeys: ['value'],
+        labels: ['value']
+      });
+
+      var info = document.getElementById('info');
+      info.innerHTML="<h1>Information</h1><br>uuid : "+msg.idKey+"<br>Latitude : "+sensors.get(msg.idKey).latitude+"<br>Longitude : "+sensors.get(msg.idKey).longitude+"<br>Unit : "+sensors.get(msg.idKey).type+"<br>Last update : "+data[data.length-1]['date']+""
+
+
+    });//fin queryalldata
+
+
+    socket.on('startQueryReponse', function (msg){//reception of the list of sensors when the page is loaded, add then to the list
+      sensors.set(msg.idKey,msg);
+      document.forms.ChoixCapteurs.Liste.options[document.forms.ChoixCapteurs.Liste.options.length] = new Option(msg.idKey,msg.idKey);
+    });
+
+socket.emit('startQuery', 'allSensors');
+  }); //fin connect
+
+function Selected(){
+  if(document.forms.ChoixCapteurs.Liste.options.selectedIndex !== 0)
+  {
+    socket.emit('queryAllData',document.forms.ChoixCapteurs.Liste.options[document.forms.ChoixCapteurs.Liste.options.selectedIndex].value);
+  }
+}
+
+</script>
+
   </body>
 </html>

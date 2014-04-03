@@ -103,12 +103,6 @@
       graphData.set(msg.idKey,data);
     });
 
-
-
-
-
-
-
     socket.on('startQueryReponse', function (msg){//reception of the list of sensors when the page is loaded
       //console.log('startQueryReponse', msg);
       if(sensors.get(msg.idKey) == null)

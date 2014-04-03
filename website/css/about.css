@@ -5,3 +5,13 @@ body {
   padding: 40px 15px;
   text-align: center;
 }
+#chart{
+	height:50%;
+	width:74%;
+	float:right;
+}
+#info{
+	height: 150px;
+	width: 26%;
+	float:left;
+}

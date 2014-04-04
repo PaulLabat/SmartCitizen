@@ -74,7 +74,10 @@ io.sockets.on('connection', function (socket) {
 					    		}
 					    		else
 					    		{
-					    			socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':JSON.parse(JSON.stringify(doc[0])).value});
+                                    if(doc.length !== 0)//if the sensor has just been added and has no value, we don't display it
+                                    {
+                                        socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':JSON.parse(JSON.stringify(doc[0])).value});
+                                    }
 					    		}
 
 					   	});
@@ -135,6 +138,32 @@ io.sockets.on('connection', function (socket) {
 
     	});
     });// end queryAllData
+
+    socket.on('queryAllDataByType', function (query){
+        console.log('queryAllDataByType', query);
+        if(query === "allTypes"){
+
+        }
+        else{
+            Sensors.find({type: query},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                if(err)
+                {
+                    console.log(err);
+                    socket.emit('queryAllDataByType','error');//if an error occur
+                }   
+                else{
+                //send the data of each sensors to the map
+                    var res = JSON.parse(JSON.stringify(doc));
+                    res.forEach(function(entry){
+                        console.log(entry);
+                    });
+                }
+                    
+            });
+        }
+        
+    });// end queryAllDataByType
+
 
 
 });

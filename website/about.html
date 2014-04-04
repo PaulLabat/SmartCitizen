@@ -55,13 +55,24 @@
 
     <div class="container">
 
-      <div class="starter-template">
-        <FORM NAME="ChoixCapteurs">
-        <SELECT NAME="Liste" onChange="Selected()">
+      <!--<div class="starter-template">-->
+        <FORM NAME="Choix">
+        <SELECT NAME="sensors" id="sensorsId">
         <OPTION VALUE="">Select a sensor
         </SELECT>
+        <SELECT NAME="typeValue" id="typeValueId">
+        <OPTION VALUE="">Select a type of value
+        <option value="allTypes"> All types of value
+        </SELECT>
+        <SELECT NAME="cities" id="citiesId">
+        <OPTION VALUE="">Select a city
+        <option value="allCities"> All cities
+        </SELECT>
+        <INPUT value="30" name="nbrValue">
+        <button type="button" onCLick="clicked()">Search</button>
+
         </FORM>
-      </div>
+      <!--</div>-->
       <div id="Graph">
         <div id="info"></div>
         <div id="chart"></div>
@@ -116,18 +127,67 @@ var socket = io.connect('http://localhost:3000');//connection on the socket port
 
     socket.on('startQueryReponse', function (msg){//reception of the list of sensors when the page is loaded, add then to the list
       sensors.set(msg.idKey,msg);
-      document.forms.ChoixCapteurs.Liste.options[document.forms.ChoixCapteurs.Liste.options.length] = new Option(msg.idKey,msg.idKey);
+      document.forms.Choix.sensors.options[document.forms.Choix.sensors.options.length] = new Option(msg.idKey,msg.idKey);
+      var i =1;
+      var found = false;
+      while (i < document.forms.Choix.typeValue.options.length)
+      {
+        if(document.forms.Choix.typeValue.options[i].value === msg.type)
+        {
+          found = true;
+        }
+        i++;
+      }
+      if(!found){
+        document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.length] = new Option(msg.type,msg.type);
+      }
+
+
     });
+
+
+    socket.on('queryAllDataByTypeResponse', function (msg){
+      console.log(msg);
+    });
+
+
 
 socket.emit('startQuery', 'allSensors');
   }); //fin connect
 
-function Selected(){
-  if(document.forms.ChoixCapteurs.Liste.options.selectedIndex !== 0)
+/*function Selected(){
+  if(document.forms.Choix.sensors.options.selectedIndex === 0)
   {
-    socket.emit('queryAllData',document.forms.ChoixCapteurs.Liste.options[document.forms.ChoixCapteurs.Liste.options.selectedIndex].value);
+    document.getElementById("citiesId").style.display="block";
+    document.getElementById("typeValueId").style.display="block";
+  }
+  if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex === 0)
+  {
+    document.getElementById("sensorsId").style.display="block";
+  }
+}*/
+
+function clicked(){
+  if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex === 0 && document.forms.Choix.sensors.options.selectedIndex !== 0)//if selection by uuid only
+  {
+    socket.emit('queryAllData',document.forms.Choix.sensors.options[document.forms.Choix.sensors.options.selectedIndex].value);
+  }
+  else if(document.forms.Choix.cities.options.selectedIndex !== 0 && document.forms.Choix.typeValue.options.selectedIndex !== 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
+  {
+    alert('cities + types');
+  }
+  else if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex !== 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
+  {
+    //selection by type only
+    console.log(document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value);
+    //socket.emit('queryAllDataByType', document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value);
+  }
+  else if(document.forms.Choix.cities.options.selectedIndex !== 0 && document.forms.Choix.typeValue.options.selectedIndex === 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
+  {
+    alert('cities only');
   }
 }
+
 
 </script>
 

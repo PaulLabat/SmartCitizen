@@ -95,6 +95,10 @@
     socket.on('queryDataGraphResponse', function (msg){
       var data = [];
       msg.value.forEach(function (entry){
+        if(entry.date != null)
+        {
+          console.log('data', entry.date);
+        }
         data.push({
           date : entry.date,
           value: entry.value

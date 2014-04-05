@@ -54,8 +54,6 @@
     </div>
 
     <div class="container">
-
-      <!--<div class="starter-template">-->
         <FORM NAME="Choix">
         <SELECT NAME="sensors" id="sensorsId">
         <OPTION VALUE="">Select a sensor
@@ -68,62 +66,28 @@
         <OPTION VALUE="">Select a city
         <option value="allCities"> All cities
         </SELECT>
-        <INPUT value="30" name="nbrValue">
+        <!--<INPUT value="30" name="nbrValue">-->
         <button type="button" onCLick="clicked()">Search</button>
 
         </FORM>
-      <!--</div>-->
       <div id="Graph">
         <div id="info"></div>
         <div id="chart"></div>
       </div>
 
-
     </div>
 
 <script type="text/javascript">
+var toBeCLeaned = false;
 
 var sensors = new Hash();
 var socket = io.connect('http://localhost:3000');//connection on the socket port number 3000
   
   socket.on('connect', function(){// when a connect message is emitted from the server
-    //  console.log("socketio", "connected");
 
     socket.on('queryAllDataResponse', function (msg){
-      var data = [];
-      msg.value.forEach(function (entry){
-        data.push({
-          date : entry.date,
-          value: entry.value
-        });//fin push
-      });//fin foreach
-
-
-      //the code bellow prevent from having more than one graph at a time
-      //remove previous div chart
-      var oldDiv = document.getElementById('chart');
-      oldDiv.parentNode.removeChild(oldDiv);
-      //add the new div chart
-      var objTo = document.getElementById('Graph');
-      var newDiv = document.createElement("div");
-      newDiv.setAttribute("id","chart");
-      objTo.appendChild(newDiv);
-
-
-      new Morris.Bar({
-        element: 'chart',
-        data: data,
-        xkey: 'date',
-        ykeys: ['value'],
-        labels: ['value']
-      });
-
-      var info = document.getElementById('info');
-      info.innerHTML="<h1>Information</h1><br>uuid : "+msg.idKey+"<br>Latitude : "+sensors.get(msg.idKey).latitude+"<br>Longitude : "+sensors.get(msg.idKey).longitude+"<br>Unit : "+sensors.get(msg.idKey).type+"<br>Last update : "+data[data.length-1]['date']+""
-
-
+      addGraph(msg);
     });//fin queryalldata
-
 
     socket.on('startQueryReponse', function (msg){//reception of the list of sensors when the page is loaded, add then to the list
       sensors.set(msg.idKey,msg);
@@ -141,53 +105,77 @@ var socket = io.connect('http://localhost:3000');//connection on the socket port
       if(!found){
         document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.length] = new Option(msg.type,msg.type);
       }
-
-
     });
 
-
-    socket.on('queryAllDataByTypeResponse', function (msg){
-      console.log(msg);
+    socket.on('queryAllDataByTypeReponse', function (msg){
+     addGraph(msg);
     });
-
-
 
 socket.emit('startQuery', 'allSensors');
   }); //fin connect
 
-/*function Selected(){
-  if(document.forms.Choix.sensors.options.selectedIndex === 0)
-  {
-    document.getElementById("citiesId").style.display="block";
-    document.getElementById("typeValueId").style.display="block";
-  }
-  if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex === 0)
-  {
-    document.getElementById("sensorsId").style.display="block";
-  }
-}*/
 
 function clicked(){
-  if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex === 0 && document.forms.Choix.sensors.options.selectedIndex !== 0)//if selection by uuid only
+
+  //delete old graph et data display
+  var p = document.getElementById('Graph');
+  while (p.firstChild) {
+    p.removeChild(p.firstChild);
+  }
+
+  //by uuid
+  if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex === 0 && document.forms.Choix.sensors.options.selectedIndex !== 0)
   {
     socket.emit('queryAllData',document.forms.Choix.sensors.options[document.forms.Choix.sensors.options.selectedIndex].value);
   }
+  //cities + types
   else if(document.forms.Choix.cities.options.selectedIndex !== 0 && document.forms.Choix.typeValue.options.selectedIndex !== 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
   {
     alert('cities + types');
   }
+  //types only
   else if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex !== 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
   {
-    //selection by type only
-    console.log(document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value);
-    //socket.emit('queryAllDataByType', document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value);
+    socket.emit('queryAllDataByType', document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value);
   }
+  //cities only
   else if(document.forms.Choix.cities.options.selectedIndex !== 0 && document.forms.Choix.typeValue.options.selectedIndex === 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
   {
     alert('cities only');
   }
 }
 
+
+//function that display information about a sensors and the graph of all value
+function addGraph(msg){
+ var data = [];
+  msg.value.forEach(function (entry){
+    data.push({
+      date : entry.date,
+      value: entry.value
+    });//fin push
+  });//fin foreach
+
+  //add the new div chart
+  var objTo = document.getElementById('Graph');
+  var newDiv = document.createElement("div");
+  newDiv.setAttribute("id","chart"+msg.idKey);
+  newDiv.setAttribute("style", "width:74%;float:right;");
+  objTo.appendChild(newDiv);
+  var newinfo = document.createElement("div");
+  newinfo.setAttribute("id","info"+msg.idKey);
+  newinfo.setAttribute("style","width: 26%;float:left;");
+  newinfo.innerHTML="<h1>Information</h1><br>uuid : "+msg.idKey+"<br>Latitude : "+sensors.get(msg.idKey).latitude+"<br>Longitude : "+sensors.get(msg.idKey).longitude+"<br>Unit : "+sensors.get(msg.idKey).type+"<br>Last update : "+data[data.length-1]['date']+""
+  objTo.appendChild(newinfo);
+
+  new Morris.Bar({
+    element: 'chart'+msg.idKey,
+    data: data,
+    xkey: 'date',
+    ykeys: ['value'],
+    labels: ['value']
+  });
+}
 
 </script>
 

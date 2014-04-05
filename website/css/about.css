@@ -5,12 +5,3 @@ body {
   padding: 40px 15px;
   text-align: center;
 }
-#chart{
-	width:74%;
-	float:right;
-}
-#info{
-	width: 26%;
-	float:left;
-}
-

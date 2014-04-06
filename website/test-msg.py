@@ -18,7 +18,7 @@ print ('Messages are published')
 
 while True:
     area = random.randrange(0,len(sensorsId),1)
-    topic = element + '/' + '/' + str(area)
+    topic = element + '/' + str(area)
     value = str(random.uniform(0.0, 50.0))
     message = sensorsId[area] + '#' + value
     client = mosquitto.Mosquitto("smartcitizen")

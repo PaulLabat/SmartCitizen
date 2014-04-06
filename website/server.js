@@ -1,6 +1,15 @@
 var mqtt = require('mqtt');
 var socket = require('socket.io');
 var mongoose = require('mongoose');
+var twit = require('twit');
+
+//----------------- twitter part
+var T = new twit({
+    consumer_key : 'U87J6WZNIjD7FRPeiSDLqrji9',
+    consumer_secret : 'XHp6BLffy9FZZJXQb6XWNfOXa4R738tGVd09qhr2yKxZkT6G98',
+    access_token : '2360537487-YR6i2mQkwRubKVq212FQLdkPXp44RjGDOQcXKyv',
+    access_token_secret : 'uv59pI49r841XLECUrEYAeDRIMu1l3f4X4v5ctMN4puEC'
+});
 
 //----------------- mqtt part
 var mqttbroker = 'localhost';
@@ -16,7 +25,6 @@ db.on('error', console.error.bind(console, 'connection error:'));//display if co
 db.once('open', function callback () {
   console.log("mongoose","connection success");
 });
-
 
 //definition of the schema used by the database
 var sensorsSchema = mongoose.Schema({
@@ -216,20 +224,63 @@ io.sockets.on('connection', function (socket) {
 
 });
 
+//---------------- Activition treshold
+var temperature = 25.;
+var humidity = 40.;
+
+
+/*T.post('statuses/update', {status: 'Hello World !'}, function (err, reply){
+    if(err)
+    {
+        console.log('twitter', 'error');
+    }
+    else{
+        console.log('twitter', reply);
+    }
+});*/
+
 /**
 * function to be executed when data from mqtt are received
 * Data are received via mqtt brocker and then stored in a mongodb database
 */
 mqttclient.on('message', function(topic, payload) {
 	//data are formated so that it fit the mongodb syntax
-	var split = payload.split('#');
-	var toBeStored = new SensorsData({
-		idKey: split[0],
-		value: parseFloat(split[1])
-	});
-	console.log('tobestored',toBeStored);
-	toBeStored.save(function(err, toBeStored){
-		if(err) return console.error(err);
-	});
-	
+    var split = payload.split('#');
+    //the query verify if the sensor is in the database, if not, we do not store the data
+    Sensors.find({idKey : split[0]},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+        if(err){
+        }
+        else{
+            if(doc.length !==0){
+                var toBeStored = new SensorsData({
+                    idKey: split[0],
+                    value: parseFloat(split[1])
+                });
+                console.log('tobestored',toBeStored);
+                /*toBeStored.save(function(err, toBeStored){
+                    if(err) return console.error(err);
+                });*/
+                switch(doc[0].type){
+                    case "celcius":
+                    if(split[1] >= temperature){
+                        var txt = doc[0].idKey+" is "+Math.ceil(split[1])+ "°C. It's location is : "+doc[0].latitude+","+doc[0].longitude+"";
+                         T.post('statuses/update', {status: txt}, function (err, reply){
+                            if(err)
+                            {
+                                console.log('twitter', 'error');
+                            }
+                            else{
+                                console.log('twitter', reply);
+                            }
+                        });
+                    }
+                    break;
+                    case "percent":
+                    break;
+                    default:
+                }
+
+            }
+        }
+    });	
 });

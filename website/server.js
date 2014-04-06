@@ -1,7 +1,6 @@
 var mqtt = require('mqtt');
 var socket = require('socket.io');
 var mongoose = require('mongoose');
-var bson = require('bson');
 
 //----------------- mqtt part
 var mqttbroker = 'localhost';
@@ -32,6 +31,7 @@ var sensorsSchema = mongoose.Schema({
 var sensorsDataSchema = mongoose.Schema({
 	idKey: String,
 	value : Number,
+	date:{type:Date, default:Date.now()},
 },
 {
 	collection: 'sensorsData' 
@@ -49,20 +49,11 @@ io.set('log level', 0)
 
 io.sockets.on('connection', function (socket) {
 	mqttclient.subscribe(topic);//suscribe to the mqtt topic
-	console.log('suscribeTopic', topic)
 
 
 	//function called when a query is received
     socket.on('startQuery', function (query)
 	{	
-    	/*
-    	Sensors.find({type: "celcius"}).exec(function(err,doc){
-    		if(err)
-    			console.log(err);
-    		else
-    			console.log(doc);
-    	});
-		*/
 		if(query === 'allSensors')
 		{
 			Sensors.find().exec(function(err,doc){
@@ -75,14 +66,154 @@ io.sockets.on('connection', function (socket) {
     			//send the data of each sensors	to the map
     				var res = JSON.parse(JSON.stringify(doc));
     				res.forEach(function(entry){
-    					socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type});
+    					//query the last value of the sensor
+						SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'descending'}}).limit(1).exec(function(err,doc){
+					    		if(err)
+					    		{
+									socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':"none"});
+					    		}
+					    		else
+					    		{
+                                    if(doc.length !== 0)//if the sensor has just been added and has no value, we don't display it
+                                    {
+                                        socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':JSON.parse(JSON.stringify(doc[0])).value});
+                                    }
+					    		}
+
+					   	});
     				});
     			}
     				
 			});
 		}   	
 
-    });
+    });//end startquery
+
+    //send the last data of a sensor
+    socket.on('queryLastData', function (query){
+    	SensorsData.find({idKey: query},{}, {sort: {'_id':'descending'}}).limit(1).exec(function(err,doc){
+    		if(err)
+    		{
+    			console.log(err);
+    			socket.emit('queryResponse','error');
+
+    		}
+    		else
+    		{
+    			socket.emit('queryResponse',JSON.parse(JSON.stringify(doc[0])));
+    		}
+
+    	});
+
+
+    });//end socket.on querylastdata
+
+    //send the 30 last data of a sensor in order to display a grap in the popup
+    socket.on('queryDataGraph', function (query){
+    	SensorsData.find({idKey: query},{}, {sort: {'_id':'ascending'}}).limit(30).exec(function(err,doc){
+    		if(err)
+    		{
+    			console.log(err);
+    			socket.emit('queryDataGraphResponse','error');
+
+    		}
+    		else
+    		{
+    			socket.emit('queryDataGraphResponse',{idKey:doc[0].idKey,value:doc});
+    		}
+
+    	});
+    });// end queryDataGraph
+
+    //send all data about a sensor, to display graph in the about page
+    socket.on('queryAllData', function (query){
+    	SensorsData.find({idKey: query},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+    		if(err)
+    		{
+    			console.log(err);
+    			socket.emit('queryAllDataResponse','error');
+
+    		}
+    		else
+    		{
+    			socket.emit('queryAllDataResponse',{idKey:doc[0].idKey,value:doc});
+    		}
+
+    	});
+    });// end queryAllData
+
+    //send all data about avery sensor with the right type (temperature, humidity...), to display graph in the about page
+    socket.on('queryAllDataByType', function (query){
+        if(query === "allTypes"){
+
+            Sensors.find({},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                if(err)
+                {
+                    console.log(err);
+                    socket.emit('queryAllDataByTypeReponse','error');//if an error occur
+                }   
+                else{
+                //send the data of each sensors to the map
+                    var res = JSON.parse(JSON.stringify(doc));
+                    res.forEach(function(entry){
+                        SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                            if(err)
+                            {
+                                console.log(err);
+                                socket.emit('queryAllDataByTypeReponse','error');
+
+                            }
+                            else
+                            {
+                                if(doc.length !==0)
+                                {
+                                    socket.emit('queryAllDataByTypeReponse',{idKey:doc[0].idKey,value:doc});
+                                }
+                              }
+
+                        });
+                    });
+                }
+                    
+            });
+        }
+        else{
+            Sensors.find({type: query},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                if(err)
+                {
+                    console.log(err);
+                    socket.emit('queryAllDataByTypeReponse','error');//if an error occur
+                }   
+                else{
+                //send the data of each sensors to the map
+                    var res = JSON.parse(JSON.stringify(doc));
+                    res.forEach(function(entry){
+                        SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                            if(err)
+                            {
+                                console.log(err);
+                                socket.emit('queryAllDataByTypeReponse','error');
+
+                            }
+                            else
+                            {
+                                if(doc.length !==0)
+                                {
+                                    socket.emit('queryAllDataByTypeReponse',{idKey:doc[0].idKey,value:doc});
+                                }
+                              }
+
+                        });
+                    });
+                }
+                    
+            });
+        }
+        
+    });// end queryAllDataByType
+
+
+
 });
 
 /**
@@ -92,16 +223,13 @@ io.sockets.on('connection', function (socket) {
 mqttclient.on('message', function(topic, payload) {
 	//data are formated so that it fit the mongodb syntax
 	var split = payload.split('#');
-	var toBeStored = new Data({
+	var toBeStored = new SensorsData({
 		idKey: split[0],
-		value: parseFloat(split[1]),
-		lat: parseFloat(split[2]),
-		lon: parseFloat(split[3])
+		value: parseFloat(split[1])
 	});
-
+	console.log('tobestored',toBeStored);
 	toBeStored.save(function(err, toBeStored){
 		if(err) return console.error(err);
 	});
-
-	console.log('', toBeStored);
+	
 });

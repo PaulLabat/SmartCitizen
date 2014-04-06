@@ -9,8 +9,8 @@ The website depends on some additional packages :
 - [node.js](http://www.nodejs.org/)
 - [mqtt](https://github.com/adamvr/MQTT.js/)
 - [socket.io](http://socket.io/)
-
-To install mqtt and socket.io, first you need to install node.js and NPM. 
+- [mongoose](mongoosejs.com)
+To install mqtt, socket.io and mongoose, first you need to install node.js and NPM. 
 
 In order to use an Ethernet module on your arduino and to publish with it on a MQTT server, you need to install some packages. <br>
 you need to clone in your-path-for-arduino/librairies/ 3 librairies :
@@ -28,7 +28,7 @@ git clone https://github.com/PaulLabat/SmartCitizen.git
 
 then in the SmartCitizen folder run
 ```
-$ npm install mqtt socket.io
+$ npm install mqtt socket.io mongoose
 ```
 
 ## MQTT broker/server

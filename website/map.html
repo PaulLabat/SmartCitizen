@@ -23,8 +23,15 @@
     .leaflet-popup-content-wrapper { background-color: white; }
   </style>
 
+<!--morris.js-->
+<link rel="stylesheet" href="http://cdn.oesmith.co.uk/morris-0.4.3.min.css">
+<script src="http://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
+<script src="morris/morris.min.js"></script>
+
+
   <!--socket.io-->
   <script type="text/javascript" src="js/socket.io.min.js"></script>
+
 </head>
 <body>
     
@@ -60,6 +67,7 @@
   jQuery.noConflict();
   var sensors = new Hash(); //hash map used for managing the marker on the map
   var sensorsData = new Hash(); //hash map used for managing the data of each sensors
+  var graphData = new Hash(); //each value contain a graph which is identified to a specific sensor
 
 //--------------------define the map
   var map = L.map('map').setView([45.18, 5.75], 12);
@@ -73,22 +81,65 @@
   var socket = io.connect('http://localhost:3000');//connection on the socket port number 3000
   
   socket.on('connect', function(){// when a connect message is emitted from the server
-    console.log("socketio", "connected");
+    //  console.log("socketio", "connected");
 
-    socket.on('queryResponse', function(msg){ // when a mqqt message is emitted from the server
-      console.log('queryResponse', msg);
+    socket.on('queryResponse', function (msg){ // when a query response is received
+      //console.log('queryResponse', msg);
+      if(msg!=='error')
+      {
+        sensorsData.set(msg.idKey,msg.value);
+      }
+
     });
-    socket.on('startQueryReponse', function(msg){//reception of the list of sensors when the page is loaded
-      console.log('startQueryReponse', msg);
+
+    socket.on('queryDataGraphResponse', function (msg){
+      var data = [];
+      msg.value.forEach(function (entry){
+        if(entry.date != null)
+        {
+          console.log('data', entry.date);
+        }
+        data.push({
+          date : entry.date,
+          value: entry.value
+        });
+      });
+      graphData.set(msg.idKey,data);
+    });
+
+    socket.on('startQueryReponse', function (msg){//reception of the list of sensors when the page is loaded
+      //console.log('startQueryReponse', msg);
       if(sensors.get(msg.idKey) == null)
         {
-          //Adding the marker on the display with a method onClick to query the database	
-          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> value : none "+msg.type+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude).on('click', function (e) {
-        //Method onClick  	
-	    this.bindPopup("idKey du marker : " + msg.idKey);
-	  });;
-          sensors.set(msg.idKey,tmp);
           sensorsData.set(msg.idKey, null);
+          graphData.set(msg.idKey, null);
+
+          //Adding the marker on the display with a method onClick to query the database	
+          tmp = L.marker([msg.latitude, msg.longitude]).addTo(map).bindPopup("uuid : "+ msg.idKey+"<br> latitude : "+msg.latitude+"<br> longitude : "+msg.longitude+"<br> value : "+msg.value+" "+msg.type+'<br><div id="chart'+msg.idKey+'" style="height=150px;width=200px;"></div>').on('click', function (e) {
+               //Method onClick  	
+              socket.emit('queryLastData',msg.idKey);
+              socket.emit('queryDataGraph',msg.idKey);
+	           this.bindPopup("uuid : "+msg.idKey+"<br>Latitude : " + e.latlng.lat + "<br>Longitude : " + e.latlng.lng+"<br>Valeur : "+msg.value+" "+ msg.type+'<br><div id="chart'+msg.idKey+'" style="height=150px;width=200px;"></div>');
+
+              //code to manage the graph morris js
+                 new Morris. Bar({
+                    // ID of the element in which to draw the chart.
+                    element: 'chart'+msg.idKey,
+                    // Chart data records -- each entry in this array corresponds to a point on
+                    // the chart.
+                    data: graphData.get(msg.idKey),
+                    // The name of the data record attribute that contains x-values.
+                    xkey: 'date',
+                    // A list of names of data record attributes that contain y-values.
+                    ykeys: ['value'],
+                    // Labels for the ykeys -- will be displayed when you hover over the
+                    // chart.
+                    labels: ['value']
+                });
+
+
+	           });
+          sensors.set(msg.idKey,tmp);
         }
     });
 
@@ -96,6 +147,9 @@
     socket.emit('startQuery', 'allSensors');//send to the server which will send back all the sensors in the database, is executed once-
   });    
 
+
   </script>
+
+
 </body>
 </html

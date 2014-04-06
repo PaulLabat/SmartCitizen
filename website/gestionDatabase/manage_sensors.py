@@ -21,6 +21,7 @@ db = client.dbSmartCitizen
 #Connection to the collection sensors
 #note : if it is not exist, it will be created
 sensors = db.sensors
+sensorsData = db.sensorsData
 
 #Definition of the differents types
 types = ['celcius', 'fahrenheit', 'percent', 'becquerel', 'ppm']
@@ -67,4 +68,9 @@ val['latitude'] = lat
 val['longitude'] = lon
 val['type'] = typeValue
 
+data = {}
+data['idKey'] = str(sensorId)
+data['value'] = 0
+
 sensors.insert(val)
+sensorsData.insert(data)

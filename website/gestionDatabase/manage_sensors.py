@@ -21,7 +21,6 @@ db = client.dbSmartCitizen
 #Connection to the collection sensors
 #note : if it is not exist, it will be created
 sensors = db.sensors
-sensorsData = db.sensorsData
 
 #Definition of the differents types
 types = ['celcius', 'fahrenheit', 'percent', 'becquerel', 'ppm']
@@ -50,6 +49,11 @@ while True:
 	if typeValue in types:
 		break
 
+city = raw_input("Enter the city of the sensor : ")
+
+owner = raw_input("Enter the owner's first and last name : ")
+
+
 #Checking the unicity of data
 sensorId = str(uuid.uuid4())
 for d in sensors.find():
@@ -67,10 +71,7 @@ val['idKey'] = str(sensorId)
 val['latitude'] = lat
 val['longitude'] = lon
 val['type'] = typeValue
-
-data = {}
-data['idKey'] = str(sensorId)
-data['value'] = 0
+val['city'] = city
+val['owner'] = owner
 
 sensors.insert(val)
-sensorsData.insert(data)

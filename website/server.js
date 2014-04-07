@@ -32,6 +32,8 @@ var sensorsSchema = mongoose.Schema({
 	idKey: String,
 	type: String,
 	longitude: Number,
+    city: String,
+    owner: String,
 },
 {
 	collection: 'sensors' 
@@ -225,19 +227,8 @@ io.sockets.on('connection', function (socket) {
 });
 
 //---------------- Activition treshold
-var temperature = 25.;
+var temperature = 30.;
 var humidity = 40.;
-
-
-/*T.post('statuses/update', {status: 'Hello World !'}, function (err, reply){
-    if(err)
-    {
-        console.log('twitter', 'error');
-    }
-    else{
-        console.log('twitter', reply);
-    }
-});*/
 
 /**
 * function to be executed when data from mqtt are received
@@ -245,6 +236,7 @@ var humidity = 40.;
 */
 mqttclient.on('message', function(topic, payload) {
 	//data are formated so that it fit the mongodb syntax
+    console.log('mqtt', 'msg received');
     var split = payload.split('#');
     //the query verify if the sensor is in the database, if not, we do not store the data
     Sensors.find({idKey : split[0]},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
@@ -257,30 +249,37 @@ mqttclient.on('message', function(topic, payload) {
                     value: parseFloat(split[1])
                 });
                 console.log('tobestored',toBeStored);
-                /*toBeStored.save(function(err, toBeStored){
+                toBeStored.save(function(err, toBeStored){
                     if(err) return console.error(err);
-                });*/
+                });
                 switch(doc[0].type){
                     case "celcius":
                     if(split[1] >= temperature){
-                        var txt = doc[0].idKey+" is "+Math.ceil(split[1])+ "°C. It's location is : "+doc[0].latitude+","+doc[0].longitude+"";
-                         T.post('statuses/update', {status: txt}, function (err, reply){
-                            if(err)
-                            {
-                                console.log('twitter', 'error');
-                            }
-                            else{
-                                console.log('twitter', reply);
-                            }
-                        });
+                        tweet(doc[0], temperature, "°C", split[1]);
                     }
                     break;
                     case "percent":
+                    if(split[1] >= humidity){
+                        tweet(doc[0], humidity, "%", split[1]);
+                    }
                     break;
                     default:
                 }
-
             }
         }
     });	
 });
+function tweet(doc,threshold, unit, value)
+{
+    var txt = "The sensor own by "+doc.owner+", located in "+ doc.city+" exeeded "+threshold+unit+". It is "+Math.ceil(value)+unit;
+    T.post('statuses/update', {status: txt}, function (err, reply){
+        if(err)
+        {
+            console.log('twitter', 'error', err);
+        }
+        else{
+            console.log('twitter', "tweet sent");
+        }
+    });
+
+}

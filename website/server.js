@@ -290,6 +290,102 @@ io.sockets.on('connection', function (socket) {
         }
     });
 
+
+    socket.on('queryAllDataByCityAndType', function (query) {
+        if(query.type === "allTypes"){
+            Sensors.find({city : query.city},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                if(err)
+                {
+                    console.log(err);
+                    socket.emit('queryAllDataByCityAndTypeResponse','error');//if an error occur
+                }   
+                else{
+                //send the data of each sensors to the map
+                    var res = JSON.parse(JSON.stringify(doc));
+                    res.forEach(function(entry){
+                        SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                            if(err)
+                            {
+                                console.log(err);
+                                socket.emit('queryAllDataByCityResponse','error');
+
+                            }
+                            else
+                            {
+                                if(doc.length !==0)
+                                {
+                                    socket.emit('queryAllDataByCityResponse',{idKey:doc[0].idKey,value:doc});
+                                }
+                              }
+
+                        });//end second query
+                    });
+                }    
+            });//end first query
+
+        }
+        else if(query.city === "allCities"){
+            Sensors.find({type: query.type},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                if(err)
+                {
+                    console.log(err);
+                    socket.emit('queryAllDataByCityAndTypeResponse','error');//if an error occur
+                }   
+                else{
+                //send the data of each sensors to the map
+                    var res = JSON.parse(JSON.stringify(doc));
+                    res.forEach(function(entry){
+                        SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                            if(err)
+                            {
+                                console.log(err);
+                                socket.emit('queryAllDataByCityResponse','error');
+                            }
+                            else
+                            {
+                                if(doc.length !==0)
+                                {
+                                    socket.emit('queryAllDataByCityResponse',{idKey:doc[0].idKey,value:doc});
+                                }
+                              }
+
+                        });//end second query
+                    });
+                }      
+            });//end first query
+        }
+        else{
+            Sensors.find({type: query.type, city : query.city},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                if(err)
+                {
+                    console.log(err);
+                    socket.emit('queryAllDataByCityAndTypeResponse','error');//if an error occur
+                }   
+                else{
+                //send the data of each sensors to the map
+                    var res = JSON.parse(JSON.stringify(doc));
+                    res.forEach(function(entry){
+                        SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                            if(err)
+                            {
+                                console.log(err);
+                                socket.emit('queryAllDataByCityResponse','error');
+                            }
+                            else
+                            {
+                                if(doc.length !==0)
+                                {
+                                    socket.emit('queryAllDataByCityResponse',{idKey:doc[0].idKey,value:doc});
+                                }
+                              }
+
+                        });//end second query
+                    });
+                }       
+            });//end first query
+        }
+    });
+
 });
 
 //---------------- Activition treshold

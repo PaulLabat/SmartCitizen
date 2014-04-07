@@ -128,6 +128,9 @@ var socket = io.connect('http://localhost:3000');//connection on the socket port
     socket.on('queryAllDataByCityResponse', function (msg){
       addGraph(msg);
     });
+    socket.on('queryAllDataByCityAndTypeResponse', function (msg){
+      addGraph(msg);
+    });
 
 socket.emit('startQuery', 'allSensors');
 }); //fin connect
@@ -149,7 +152,14 @@ function clicked(){
   //cities + types
   else if(document.forms.Choix.cities.options.selectedIndex !== 0 && document.forms.Choix.typeValue.options.selectedIndex !== 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
   {
-    alert('cities + types');
+    if((document.forms.Choix.cities.options[document.forms.Choix.cities.options.selectedIndex].value === "allCities")&&(document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value === "allTypes"))
+    {
+      socket.emit('queryAllDataByType', 'allTypes');
+    }
+    else{
+      socket.emit('queryAllDataByCityAndType', {type : document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value, city : document.forms.Choix.cities.options[document.forms.Choix.cities.options.selectedIndex].value});  
+    }
+    
   }
   //types only
   else if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex !== 0 && document.forms.Choix.sensors.options.selectedIndex === 0)

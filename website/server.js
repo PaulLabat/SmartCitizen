@@ -80,13 +80,13 @@ io.sockets.on('connection', function (socket) {
 						SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'descending'}}).limit(1).exec(function(err,doc){
 					    		if(err)
 					    		{
-									socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':"none"});
+									socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':"none", 'city':entry.city, 'owner':entry.owner});
 					    		}
 					    		else
 					    		{
                                     if(doc.length !== 0)//if the sensor has just been added and has no value, we don't display it
                                     {
-                                        socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':JSON.parse(JSON.stringify(doc[0])).value});
+                                        socket.emit('startQueryReponse', {'latitude' : entry.latitude,'longitude' : entry.longitude, 'idKey' : entry.idKey, 'type': entry.type, 'value':JSON.parse(JSON.stringify(doc[0])).value,'city':entry.city, 'owner':entry.owner});
                                     }
 					    		}
 
@@ -222,7 +222,73 @@ io.sockets.on('connection', function (socket) {
         
     });// end queryAllDataByType
 
+    socket.on('queryAllDataByCity', function (query){
+        if(query === "allCities"){
 
+            Sensors.find({},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                if(err)
+                {
+                    console.log(err);
+                    socket.emit('queryAllDataByCityResponse','error');//if an error occur
+                }   
+                else{
+                //send the data of each sensors to the map
+                    var res = JSON.parse(JSON.stringify(doc));
+                    res.forEach(function(entry){
+                        SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                            if(err)
+                            {
+                                console.log(err);
+                                socket.emit('queryAllDataByCityResponse','error');
+
+                            }
+                            else
+                            {
+                                if(doc.length !==0)
+                                {
+                                    socket.emit('queryAllDataByCityResponse',{idKey:doc[0].idKey,value:doc});
+                                }
+                              }
+
+                        });
+                    });
+                }
+                    
+            });
+        }
+        else{
+            Sensors.find({city: query},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                if(err)
+                {
+                    console.log(err);
+                    socket.emit('queryAllDataByCityResponse','error');//if an error occur
+                }   
+                else{
+                //send the data of each sensors to the map
+                    var res = JSON.parse(JSON.stringify(doc));
+                    res.forEach(function(entry){
+                        SensorsData.find({idKey: entry.idKey},{}, {sort: {'_id':'ascending'}}).exec(function(err,doc){
+                            if(err)
+                            {
+                                console.log(err);
+                                socket.emit('queryAllDataByCityResponse','error');
+
+                            }
+                            else
+                            {
+                                if(doc.length !==0)
+                                {
+                                    socket.emit('queryAllDataByCityResponse',{idKey:doc[0].idKey,value:doc});
+                                }
+                              }
+
+                        });
+                    });
+                }
+                    
+            });
+        }
+    });
 
 });
 

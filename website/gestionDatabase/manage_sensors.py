@@ -75,3 +75,4 @@ val['city'] = city
 val['owner'] = owner
 
 sensors.insert(val)
+print(sensorId)

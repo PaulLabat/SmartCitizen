@@ -119,10 +119,10 @@
                //Method onClick  	
               socket.emit('queryLastData',msg.idKey);
               socket.emit('queryDataGraph',msg.idKey);
-	           this.bindPopup("Owner : "+msg.owner+"<br>Latitude : " + e.latlng.lat + "<br>Longitude : " + e.latlng.lng+"<br>City : "+msg.city+"<br>Valeur : "+msg.value+" "+ msg.type+'<br><div id="chart'+msg.idKey+'" style="height=150px;width=200px;"></div>');
+	           this.bindPopup("Owner : "+msg.owner+"<br>Latitude : " + e.latlng.lat + "<br>Longitude : " + e.latlng.lng+"<br>City : "+msg.city+"<br>Valeur : "+msg.value+" "+ msg.type+'<br><div id="chart'+msg.idKey+'" style="height=150px;width=200px;"></div>', {minWidth:340});
 
               //code to manage the graph morris js
-                 new Morris. Bar({
+                 new Morris.Line({
                     // ID of the element in which to draw the chart.
                     element: 'chart'+msg.idKey,
                     // Chart data records -- each entry in this array corresponds to a point on

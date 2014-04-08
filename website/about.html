@@ -196,7 +196,7 @@ function addGraph(msg){
   newinfo.innerHTML="<h1>Information</h1><br>Owner : "+sensors.get(msg.idKey).owner+"<br>Latitude : "+sensors.get(msg.idKey).latitude+"<br>Longitude : "+sensors.get(msg.idKey).longitude+"<br>City : "+sensors.get(msg.idKey).city+"<br>Unit : "+sensors.get(msg.idKey).type+"<br>Last update : "+data[data.length-1]['date']+""
   objTo.appendChild(newinfo);
 
-  new Morris.Bar({
+  new Morris.Line({
     element: 'chart'+msg.idKey,
     data: data,
     xkey: 'date',

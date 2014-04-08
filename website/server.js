@@ -408,7 +408,8 @@ mqttclient.on('message', function(topic, payload) {
             if(doc.length !==0){
                 var toBeStored = new SensorsData({
                     idKey: split[0],
-                    value: parseFloat(split[1])
+                    value: parseFloat(split[1]),
+                    date:Date.now()
                 });
                 console.log('tobestored',toBeStored);
                 toBeStored.save(function(err, toBeStored){

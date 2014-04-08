@@ -105,14 +105,35 @@ var socket = io.connect('http://localhost:3000');//connection on the socket port
       if(!found){
         document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.length] = new Option(msg.type,msg.type);
       }
+
+      i =1;
+      found = false;
+      while (i < document.forms.Choix.cities.options.length)
+      {
+        if(document.forms.Choix.cities.options[i].value === msg.city)
+        {
+          found = true;
+        }
+        i++;
+      }
+      if(!found){
+        document.forms.Choix.cities.options[document.forms.Choix.cities.options.length] = new Option(msg.city,msg.city);
+      }
+
     });
 
     socket.on('queryAllDataByTypeReponse', function (msg){
      addGraph(msg);
     });
+    socket.on('queryAllDataByCityResponse', function (msg){
+      addGraph(msg);
+    });
+    socket.on('queryAllDataByCityAndTypeResponse', function (msg){
+      addGraph(msg);
+    });
 
 socket.emit('startQuery', 'allSensors');
-  }); //fin connect
+}); //fin connect
 
 
 function clicked(){
@@ -131,7 +152,14 @@ function clicked(){
   //cities + types
   else if(document.forms.Choix.cities.options.selectedIndex !== 0 && document.forms.Choix.typeValue.options.selectedIndex !== 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
   {
-    alert('cities + types');
+    if((document.forms.Choix.cities.options[document.forms.Choix.cities.options.selectedIndex].value === "allCities")&&(document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value === "allTypes"))
+    {
+      socket.emit('queryAllDataByType', 'allTypes');
+    }
+    else{
+      socket.emit('queryAllDataByCityAndType', {type : document.forms.Choix.typeValue.options[document.forms.Choix.typeValue.options.selectedIndex].value, city : document.forms.Choix.cities.options[document.forms.Choix.cities.options.selectedIndex].value});  
+    }
+    
   }
   //types only
   else if(document.forms.Choix.cities.options.selectedIndex === 0 && document.forms.Choix.typeValue.options.selectedIndex !== 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
@@ -141,7 +169,7 @@ function clicked(){
   //cities only
   else if(document.forms.Choix.cities.options.selectedIndex !== 0 && document.forms.Choix.typeValue.options.selectedIndex === 0 && document.forms.Choix.sensors.options.selectedIndex === 0)
   {
-    alert('cities only');
+    socket.emit('queryAllDataByCity', document.forms.Choix.cities.options[document.forms.Choix.cities.options.selectedIndex].value);
   }
 }
 
@@ -165,7 +193,7 @@ function addGraph(msg){
   var newinfo = document.createElement("div");
   newinfo.setAttribute("id","info"+msg.idKey);
   newinfo.setAttribute("style","width: 26%;float:left;");
-  newinfo.innerHTML="<h1>Information</h1><br>uuid : "+msg.idKey+"<br>Latitude : "+sensors.get(msg.idKey).latitude+"<br>Longitude : "+sensors.get(msg.idKey).longitude+"<br>Unit : "+sensors.get(msg.idKey).type+"<br>Last update : "+data[data.length-1]['date']+""
+  newinfo.innerHTML="<h1>Information</h1><br>Owner : "+sensors.get(msg.idKey).owner+"<br>Latitude : "+sensors.get(msg.idKey).latitude+"<br>Longitude : "+sensors.get(msg.idKey).longitude+"<br>City : "+sensors.get(msg.idKey).city+"<br>Unit : "+sensors.get(msg.idKey).type+"<br>Last update : "+data[data.length-1]['date']+""
   objTo.appendChild(newinfo);
 
   new Morris.Bar({

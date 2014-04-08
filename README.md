@@ -10,6 +10,7 @@ The website depends on some additional packages :
 - [mqtt](https://github.com/adamvr/MQTT.js/)
 - [socket.io](http://socket.io/)
 - [mongoose](mongoosejs.com)
+- [Twit](https://github.com/ttezel/twit)
 To install mqtt, socket.io, Twit and mongoose, first you need to install node.js and NPM. 
 
 In order to use an Ethernet module on your arduino and to publish with it on a MQTT server, you need to install some packages. <br>

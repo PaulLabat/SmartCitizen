@@ -3,6 +3,7 @@
 /* Example testing sketch for various DHT humidity/temperature sensors
 ** Written by ladyada, public domain
 ** library : https://github.com/adafruit/DHT-sensor-library
+** Modified by Rodolphe Freby, on 2014/03/14
 */
 
 #include "DHT.h"
@@ -12,7 +13,7 @@
 
 /*For Ethernet and MQTT */
 NanodeMQTT mqtt(&uip);
-struct timer my_timer;
+//struct timer my_timer;
 char buf[20];
 char envoi[100];
 char resultat2 [100];
@@ -72,7 +73,7 @@ void loop() {
 
   /* Only send right values as for MQ4 sensor*/
   if (isnan(t) || isnan(h)) {
-    /* do nothing */
+     uip.poll();//do nothing
   } else {
     /* Convert result from float to char *
     ** mqtt.publish can only send char *
@@ -85,7 +86,6 @@ void loop() {
       String resultat(envoi);
       resultat = "notreIDici#" + resultat;
       resultat.toCharArray(resultat2, 100);
-      Serial.println(resultat2);
       mqtt.publish("test", resultat2);
  
       delay(1000);
@@ -97,6 +97,8 @@ void loop() {
       mqtt.publish("test", resultat2);
       Serial.println("Published !");
     }else{
+      Serial.println("Reconnexion");
+      mqtt.set_server_addr(10, 1, 0, 40);
       mqtt.connect();
     }
   }

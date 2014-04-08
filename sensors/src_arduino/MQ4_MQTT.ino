@@ -34,7 +34,7 @@ void setup() {
   for(i; i<15; i++)
   {
    Serial.println("please wait, warming...");
-   //delay(60000);
+   delay(60000); 
   }
   
   /*now we have to calibrate the value of Ro*/

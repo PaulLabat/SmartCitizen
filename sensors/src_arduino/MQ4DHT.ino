@@ -14,7 +14,11 @@ Modified by Rodolphe Freby, on 2014/01/18
 ** Example testing sketch for various DHT humidity/temperature sensors
 ** Written by ladyada, public domain
 ** library : https://github.com/adafruit/DHT-sensor-library
-** Modified by Rodolphe Freby, on 2014/03/14
+** Modified by Rodolphe Freby, on 2014/03/14, adding MQ4 and MQTT code.
+*/
+
+/* This is the main arduino sketch
+** in order to use the MQ4 and DHT11 sensors
 */
 
 /*For Ethernet and MQTT */
@@ -48,7 +52,7 @@ void setup() {
   for(i; i<15; i++)
   {
    Serial.println("please wait, warming...");
-   //delay(60000);
+   delay(60000);
   }
   
   /*now we have to calibrate the value of Ro*/

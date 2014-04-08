@@ -19,7 +19,9 @@ git clone https://github.com/njh/NanodeMQTT.git
 git clone https://github.com/sde1000/NanodeUIP.git
 git clone https://github.com/sde1000/NanodeUNIO.git
 ```
-An example of how to use a MQ4 sensor (for methane) with an arduino leonardo is available in the sensor/src_arduino/ directory. You also have a wiring diagram in the sensor/layout/ directory, and some code in python to use your arduino with serial port and publish on a MQTT server in sensor/src_python/
+An example of how to use a MQ4 sensor (for methane) or a DHT11 sensor (for humidity and temperature) with an arduino leonardo is available in the sensor/src_arduino/ directory. You also have a wiring diagram in the sensor/layout/ directory, and some code in python to use your arduino with serial port and publish on a MQTT server in sensor/src_python/
+
+A tutorial of how to use a DHT11 sensor is available [here](https://learn.adafruit.com/dht)
 
 Then clone the repository :
 ```

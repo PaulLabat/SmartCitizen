@@ -1,7 +1,9 @@
 
 
-// Example testing sketch for various DHT humidity/temperature sensors
-// Written by ladyada, public domain
+/* Example testing sketch for various DHT humidity/temperature sensors
+** Written by ladyada, public domain
+** library : https://github.com/adafruit/DHT-sensor-library
+*/
 
 #include "DHT.h"
 #include <NanodeMQTT.h>
@@ -23,16 +25,17 @@ DHT dht(DHTPIN, DHTTYPE);
 void setup() {
   delay(3000);
   
+  /* Setting MAC Address */
   byte macaddr[6] = { 0x74,0x69,0x69,0x2D,0x30,0x31 };
   NanodeUNIO unio(NANODE_MAC_DEVICE);
   
   Serial.println("please wait... ethernet calibration");
   
-  /*Set the mac address*/
+  /*Set the mac address into the device*/
   unio.read(macaddr, NANODE_MAC_ADDRESS, 6);
   uip.init(macaddr);
 
-  /*Set IP address and netmask */
+  /*Set IP address and netmask of the device*/
   uip.set_ip_addr(10, 1, 0, 2);
   uip.set_netmask(255, 255, 255, 0);
 
@@ -42,7 +45,7 @@ void setup() {
   
   /* Connection to the MQTT server */
   Serial.println("please wait, connection...");
-  mqtt.set_server_addr(10, 1, 0, 42);
+  mqtt.set_server_addr(10, 1, 0, 40);
   mqtt.connect();
   
   /* We keep our mac address */
@@ -53,7 +56,6 @@ void setup() {
   
   Serial.begin(9600); 
   delay(2000);
-  Serial.println("DHT11 test!");
  
   dht.begin();
 }
@@ -64,49 +66,46 @@ void loop() {
   uip.poll();
   
   delay(2000);
-  // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  /* We need to wait 2 seconds */
   float h = dht.readHumidity();
   float t = dht.readTemperature();
 
-  // check if returns are valid, if they are NaN (not a number) then something went wrong!
+  /* Only send right values as for MQ4 sensor*/
   if (isnan(t) || isnan(h)) {
-    Serial.println("Failed to read from DHT");
+    /* do nothing */
   } else {
-    Serial.print("Humidity: "); 
-    Serial.print(h);
-    Serial.print(" %\t");
-    Serial.print("Temperature: "); 
-    Serial.print(t);
-    Serial.println(" *C");
-  }
-  
-  /*Convert result from float to char *
-  mqtt.publish can only send char *
-  */
-  delay(1000);
+    /* Convert result from float to char *
+    ** mqtt.publish can only send char *
+    */
+    delay(1000);
 
-      if (mqtt.connected()) {
+    if (mqtt.connected()) {
       Serial.println("Publishing...");
       dtostrf(h, 1, 2, envoi);
       String resultat(envoi);
-      resultat = resultat + "#data1#data2#pourcent";
+      resultat = "notreIDici#" + resultat;
       resultat.toCharArray(resultat2, 100);
+      Serial.println(resultat2);
       mqtt.publish("test", resultat2);
  
       delay(1000);
       
       dtostrf(t, 1, 2, envoi);
       String resultat3(envoi);
-      resultat3 = resultat3 + "#data1#data2#degree";
+      resultat3 = "notreID2ici#" + resultat3;
       resultat3.toCharArray(resultat2, 100);
       mqtt.publish("test", resultat2);
       Serial.println("Published !");
     }else{
-    mqtt.connect();
+      mqtt.connect();
     }
+  }
   
-  /*need to be call regularly in the loop */
-  uip.poll();
-  
+   /*need to be call regularly in the loop */
+   uip.poll();
+   
+  delay(5000);
+
+   /*need to be call regularly in the loop */
+   uip.poll();
 }

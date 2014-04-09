@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
+
   <title>SmartCitizen</title>
   <meta charset="utf-8" />   
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-  <meta name="author" content="Paul Labat">
+  <meta name="authors" content="Paul Labat, Rodolphe Fréby">
 
   <!--perso-->
   <link href="css/style.css" rel="stylesheet">
@@ -21,6 +22,16 @@
   <script src="leaflet/leaflet.js"></script>
   <style type="text/css">
     .leaflet-popup-content-wrapper { background-color: white;}
+        /*To set the map in full screen ! */
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+        }
+
   </style>
 
 <!--morris.js-->
@@ -149,7 +160,5 @@
 
 
   </script>
-
-
 </body>
-</html
+</html>
